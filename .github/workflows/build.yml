@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Get Docker image
         run: |
-          docker image pull mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
+          docker image pull mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-cross-riscv64
 
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v4.1
@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: |
           docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 -e DISABLE_CROSSGEN=1 \
-            mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0 \
+            mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04-cross-riscv64 \
             sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh -sb --clean-while-building /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true'
 
       - name: Upload .NET
