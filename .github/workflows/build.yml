@@ -4,39 +4,39 @@ on: [workflow_dispatch]
 
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Get Docker image
-      run: |
-        docker image pull mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
-        
-    - name: Maximize build space
-      uses: AdityaGarg8/remove-unwanted-software@v4.1
-      with:
-        remove-dotnet: 'true'
-        remove-android: 'true'
-        remove-haskell: 'true'
-        remove-codeql: 'true'
-        remove-cached-tools: 'true'        
+      - name: Get Docker image
+        run: |
+          docker image pull mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0
 
-    - name: Clone repository
-      run: |
-        git clone --depth 1 -b v9.0.101 https://github.com/dotnet/dotnet
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v4.1
+        with:
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-cached-tools: "true"
 
-    - name: Apply patches
-      run: |
-        wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
-        patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
+      - name: Clone repository
+        run: |
+          git clone --depth 1 -b v9.0.101 https://github.com/dotnet/dotnet
 
-    - name: Build
-      run: |
-        docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 -e DISABLE_CROSSGEN=1 \
-          mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0 \
-          sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh -sb --clean-while-building /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true'
+      - name: Apply patches
+        run: |
+          wget https://patch-diff.githubusercontent.com/raw/dotnet/sdk/pull/42158.diff
+          patch -d dotnet/src/sdk -p1 -i ${{ github.workspace }}/42158.diff
 
-    - name: Upload .NET
-      uses: actions/upload-artifact@v4
-      with:
-        name: dotnet-sdk-linux-riscv64
-        path: "${{ github.workspace }}/dotnet/artifacts/assets/Release/dotnet-sdk-*"
+      - name: Build
+        run: |
+          docker run --platform linux/amd64 --rm -v${{ github.workspace }}/dotnet:/dotnet -e ROOTFS_DIR=/crossrootfs/riscv64 -e DISABLE_CROSSGEN=1 \
+            mcr.microsoft.com/dotnet-buildtools/prereqs:azurelinux-3.0-cross-riscv64-net9.0 \
+            sh -c 'cd /dotnet && ./prep-source-build.sh && ./build.sh -sb --clean-while-building /p:TargetOS=linux /p:TargetArchitecture=riscv64 /p:Crossbuild=true'
+
+      - name: Upload .NET
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-sdk-linux-riscv64
+          path: "${{ github.workspace }}/dotnet/artifacts/assets/Release/dotnet-sdk-*"
